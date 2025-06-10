@@ -5,6 +5,8 @@ import { UniverseCard } from '@/components/universes/UniverseCard';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface Universe {
   id: string;
@@ -24,7 +26,7 @@ export const PublicUniverses: React.FC = () => {
 
   useEffect(() => {
     fetchPublicUniverses();
-  }, [user]);
+  }, []);
 
   const fetchPublicUniverses = async () => {
     try {
@@ -54,43 +56,50 @@ export const PublicUniverses: React.FC = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">Please sign in to view public universes.</p>
-      </div>
-    );
-  }
-
   if (loading) {
     return <div className="text-center py-8">Loading universes...</div>;
   }
 
-  const myUniverses = universes.filter((u) => u.creator_id === user.id);
-  const otherUniverses = universes.filter((u) => u.creator_id !== user.id);
+  const myUniverses = user ? universes.filter((u) => u.creator_id === user.id) : [];
+  const otherUniverses = user ? universes.filter((u) => u.creator_id !== user.id) : universes;
 
   return (
     <div className="space-y-10 universe-theme">
-      <div>
-        <h1 className="text-3xl font-bold text-universe-primary">My Public Universes</h1>
-        <p className="text-gray-600">Your public TV show universes</p>
+      {!user && (
+        <div className="text-center py-8 bg-purple-50 rounded-lg border border-purple-200">
+          <h2 className="text-2xl font-bold text-purple-800 mb-4">Welcome to TV Show Universes</h2>
+          <p className="text-purple-600 mb-6">Discover amazing TV show universes created by our community</p>
+          <div className="space-x-4">
+            <Link to="/sign-in">
+              <Button className="bg-purple-600 hover:bg-purple-700">Sign In</Button>
+            </Link>
+            <Link to="/sign-up">
+              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50">Sign Up</Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
-        {myUniverses.length > 0 ? (
+      {user && myUniverses.length > 0 && (
+        <div>
+          <h1 className="text-3xl font-bold text-universe-primary">My Public Universes</h1>
+          <p className="text-gray-600">Your public TV show universes</p>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
             {myUniverses.map((universe) => (
               <UniverseCard key={universe.id} universe={universe} onSelect={handlePublicUniverseSelect} />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            You haven't created any public universes yet.
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div>
-        <h2 className="text-2xl font-bold text-universe-primary">Other Public Universes</h2>
-        <p className="text-gray-600">Explore universes created by other users</p>
+        <h2 className={`text-2xl font-bold text-universe-primary ${user ? '' : 'text-center'}`}>
+          {user ? 'Other Public Universes' : 'Public Universes'}
+        </h2>
+        <p className={`text-gray-600 ${user ? '' : 'text-center'}`}>
+          {user ? 'Explore universes created by other users' : 'Explore amazing TV show universes'}
+        </p>
 
         {otherUniverses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
@@ -100,7 +109,7 @@ export const PublicUniverses: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
-            No public universes from other users found.
+            No public universes found.
           </div>
         )}
       </div>

@@ -1,8 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getRegisteredApps } from '@/apps';
 
 export const Footer: React.FC = () => {
+  const registeredApps = getRegisteredApps();
+
   return (
     <footer className="bg-gray-900 text-white mt-auto">
       <div className="container mx-auto px-2 sm:px-4 py-6 sm:py-8">
@@ -17,47 +20,27 @@ export const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">TV Shows</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/tracker/shows/public" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Public Shows
-                </Link>
-              </li>
-              <li>
-                <Link to="/tracker/universes/public" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Public Universes
-                </Link>
-              </li>
-              <li>
-                <Link to="/tracker/dashboard" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Finance</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/finance" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link to="/finance/wallets" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Wallets
-                </Link>
-              </li>
-              <li>
-                <Link to="/finance/transactions" className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base">
-                  Transactions
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Dynamically render app sections based on enabled apps */}
+          {registeredApps.map((app) => (
+            <div key={app.id}>
+              <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">{app.displayName}</h3>
+              <ul className="space-y-2">
+                {app.navigationItems
+                  .filter(item => !item.requiresAuth)
+                  .slice(0, 3) // Show only first 3 items to keep footer clean
+                  .map((item, index) => (
+                    <li key={index}>
+                      <Link 
+                        to={item.path} 
+                        className="text-gray-400 hover:text-white transition-colors text-sm sm:text-base"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
 
           <div>
             <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">Legal</h3>

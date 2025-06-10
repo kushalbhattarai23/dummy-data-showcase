@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -387,146 +386,34 @@ export const UniverseDetail: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white p-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" onClick={() => navigate(-1)} className="text-purple-200 hover:text-white hover:bg-purple-700">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Universes
         </Button>
         <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => navigate(`/universe/${universe.slug}/dashboard`)}
-            variant="outline"
-          >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Universe Dashboard
-          </Button>
-          <h1 className="text-3xl font-bold">{universe.name}</h1>
+          {user && (
+            <Button
+              onClick={() => navigate(`/universe/${universe.slug}/dashboard`)}
+              variant="outline"
+              className="border-purple-400 text-purple-200 hover:bg-purple-700"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Universe Dashboard
+            </Button>
+          )}
+          <h1 className="text-3xl font-bold text-purple-100">{universe.name}</h1>
         </div>
       </div>
       
       {universe.description && (
-        <p className="text-gray-600">{universe.description}</p>
+        <p className="text-purple-200">{universe.description}</p>
       )}
 
-      {/* Episodes Table */}
+      {/* Shows in Universe - Always visible */}
       <div>
-        <div className="flex items-center space-x-2 mb-4">
-          <h2 className="text-2xl font-semibold">All Episodes</h2>
-          {episodesLoading && (
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading watch statuses...</span>
-            </div>
-          )}
-        </div>
-        
-        {/* Episode Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search episodes or shows..."
-              value={episodeSearchTerm}
-              onChange={(e) => setEpisodeSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={showFilter} onValueChange={setShowFilter}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filter by show" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Shows</SelectItem>
-              {uniqueShows.map(show => (
-                <SelectItem key={show} value={show}>{show}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="watched">Watched</SelectItem>
-              <SelectItem value="unwatched">Unwatched</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {filteredAndSortedEpisodes.length > 0 ? (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Show</TableHead>
-                  <TableHead>Season</TableHead>
-                  <TableHead>Episode</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Air Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedEpisodes.map((episode) => {
-                  const isWatched = episode.is_watched;
-                  return (
-                    <TableRow key={episode.id}>
-                      <TableCell className="font-medium">{episode.show_title}</TableCell>
-                      <TableCell>S{episode.season_number}</TableCell>
-                      <TableCell>E{episode.episode_number}</TableCell>
-                      <TableCell>{episode.title}</TableCell>
-                      <TableCell>
-                        {episode.air_date 
-                          ? new Date(episode.air_date).toLocaleDateString()
-                          : 'TBA'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {isWatched ? (
-                            <>
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-green-600">Watched</span>
-                            </>
-                          ) : (
-                            <span className="text-gray-500">Unwatched</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => toggleWatchStatus(episode.id, isWatched)}
-                          className={`px-2 py-1 text-sm rounded font-medium transition-colors duration-200 ${
-                            isWatched
-                              ? 'bg-purple-700 text-white hover:bg-purple-800'
-                              : 'bg-purple-300 text-purple-900 hover:bg-purple-400'
-                          }`}
-                        >
-                          {isWatched ? 'Mark Unwatched' : 'Mark Watched'}
-                        </button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            {episodeSearchTerm || showFilter !== 'all' || statusFilter !== 'all' 
-              ? 'No episodes found matching your filters.'
-              : 'No episodes found in this universe.'
-            }
-          </div>
-        )}
-      </div>
-
-      {/* Shows in Universe */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Shows in Universe</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-purple-100">Shows in Universe</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {shows.map((show) => (
             <ShowCard key={show.id} show={show} onSelect={handleShowSelect} />
@@ -534,63 +421,198 @@ export const UniverseDetail: React.FC = () => {
         </div>
 
         {shows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-purple-300">
             No shows found in this universe.
           </div>
         )}
       </div>
 
-      {/* Add Shows Section */}
-      <div className="border-t pt-6">
-        <h2 className="text-2xl font-semibold mb-4">Add Shows to Universe</h2>
-        
-        {/* Search Input */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search shows to add..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Available Shows */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAvailableShows.map((show) => (
-            <div key={show.id} className="relative">
-              <ShowCard show={show} onSelect={() => {}} />
-              <Button
-                onClick={() => handleAddShow(show.id)}
-                disabled={addingShow === show.id}
-                className="absolute top-2 right-2"
-                size="sm"
-              >
-                {addingShow === show.id ? (
-                  'Adding...'
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </>
-                )}
-              </Button>
+      {/* Episodes Table - Only for logged in users */}
+      {user && (
+        <div>
+          <div className="flex items-center space-x-2 mb-4">
+            <h2 className="text-2xl font-semibold text-purple-100">All Episodes</h2>
+            {episodesLoading && (
+              <div className="flex items-center space-x-2 text-sm text-purple-300">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading watch statuses...</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Episode Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 h-4 w-4" />
+              <Input
+                placeholder="Search episodes or shows..."
+                value={episodeSearchTerm}
+                onChange={(e) => setEpisodeSearchTerm(e.target.value)}
+                className="pl-10 bg-purple-800 border-purple-600 text-white placeholder-purple-400"
+              />
             </div>
-          ))}
+            <Select value={showFilter} onValueChange={setShowFilter}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-purple-800 border-purple-600 text-white">
+                <SelectValue placeholder="Filter by show" />
+              </SelectTrigger>
+              <SelectContent className="bg-purple-800 border-purple-600">
+                <SelectItem value="all">All Shows</SelectItem>
+                {uniqueShows.map(show => (
+                  <SelectItem key={show} value={show}>{show}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[150px] bg-purple-800 border-purple-600 text-white">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent className="bg-purple-800 border-purple-600">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="watched">Watched</SelectItem>
+                <SelectItem value="unwatched">Unwatched</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filteredAndSortedEpisodes.length > 0 ? (
+            <div className="border border-purple-600 rounded-lg bg-purple-800/50">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-purple-600">
+                    <TableHead className="text-purple-200">Show</TableHead>
+                    <TableHead className="text-purple-200">Season</TableHead>
+                    <TableHead className="text-purple-200">Episode</TableHead>
+                    <TableHead className="text-purple-200">Title</TableHead>
+                    <TableHead className="text-purple-200">Air Date</TableHead>
+                    <TableHead className="text-purple-200">Status</TableHead>
+                    <TableHead className="text-purple-200">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedEpisodes.map((episode) => {
+                    const isWatched = episode.is_watched;
+                    return (
+                      <TableRow key={episode.id} className="border-purple-600">
+                        <TableCell className="font-medium text-purple-100">{episode.show_title}</TableCell>
+                        <TableCell className="text-purple-200">S{episode.season_number}</TableCell>
+                        <TableCell className="text-purple-200">E{episode.episode_number}</TableCell>
+                        <TableCell className="text-purple-200">{episode.title}</TableCell>
+                        <TableCell className="text-purple-200">
+                          {episode.air_date 
+                            ? new Date(episode.air_date).toLocaleDateString()
+                            : 'TBA'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {isWatched ? (
+                              <>
+                                <CheckCircle className="h-4 w-4 text-green-400" />
+                                <span className="text-green-400">Watched</span>
+                              </>
+                            ) : (
+                              <span className="text-purple-300">Unwatched</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => toggleWatchStatus(episode.id, isWatched)}
+                            className={`px-2 py-1 text-sm rounded font-medium transition-colors duration-200 ${
+                              isWatched
+                                ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                : 'bg-purple-400 text-purple-900 hover:bg-purple-500'
+                            }`}
+                          >
+                            {isWatched ? 'Mark Unwatched' : 'Mark Watched'}
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-purple-300">
+              {episodeSearchTerm || showFilter !== 'all' || statusFilter !== 'all' 
+                ? 'No episodes found matching your filters.'
+                : 'No episodes found in this universe.'
+              }
+            </div>
+          )}
         </div>
+      )}
 
-        {searchTerm && filteredAvailableShows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No shows found matching "{searchTerm}".
+      {/* Add Shows Section - Only for logged in users */}
+      {user && (
+        <div className="border-t border-purple-600 pt-6">
+          <h2 className="text-2xl font-semibold mb-4 text-purple-100">Add Shows to Universe</h2>
+          
+          {/* Search Input */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400 h-4 w-4" />
+            <Input
+              placeholder="Search shows to add..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-purple-800 border-purple-600 text-white placeholder-purple-400"
+            />
           </div>
-        )}
 
-        {!searchTerm && availableShows.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            All shows are already in this universe.
+          {/* Available Shows */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAvailableShows.map((show) => (
+              <div key={show.id} className="relative">
+                <ShowCard show={show} onSelect={() => {}} />
+                <Button
+                  onClick={() => handleAddShow(show.id)}
+                  disabled={addingShow === show.id}
+                  className="absolute top-2 right-2 bg-purple-600 hover:bg-purple-700"
+                  size="sm"
+                >
+                  {addingShow === show.id ? (
+                    'Adding...'
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </>
+                  )}
+                </Button>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+
+          {searchTerm && filteredAvailableShows.length === 0 && (
+            <div className="text-center py-8 text-purple-300">
+              No shows found matching "{searchTerm}".
+            </div>
+          )}
+
+          {!searchTerm && availableShows.length === 0 && (
+            <div className="text-center py-8 text-purple-300">
+              All shows are already in this universe.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sign in prompt for guests */}
+      {!user && (
+        <div className="text-center py-8 bg-purple-800/30 rounded-lg border border-purple-600">
+          <h3 className="text-xl font-semibold text-purple-100 mb-4">Want to track your progress?</h3>
+          <p className="text-purple-200 mb-6">Sign in to mark episodes as watched and manage your universe collection</p>
+          <div className="space-x-4">
+            <Button onClick={() => navigate('/sign-in')} className="bg-purple-600 hover:bg-purple-700">
+              Sign In
+            </Button>
+            <Button onClick={() => navigate('/sign-up')} variant="outline" className="border-purple-400 text-purple-200 hover:bg-purple-700">
+              Sign Up
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

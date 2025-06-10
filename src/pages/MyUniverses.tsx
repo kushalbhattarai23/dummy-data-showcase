@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -155,69 +156,73 @@ export const MyUniverses: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Universes</h1>
-          <p className="text-gray-600">Manage your created universes</p>
-        </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Universe
-        </Button>
-      </div>
-
-      {showForm && (
-        <CreateUniverseForm onSuccess={handleFormSuccess} />
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {universes.map((universe) => (
-          <div key={universe.id} className="relative">
-            <UniverseCard key={universe.id} universe={universe} onSelect={handleMyUniverseSelect} />
-            <div className="absolute top-2 right-2 flex gap-1">
-              <Button
-                onClick={(e) => handleTogglePrivacy(universe.id, universe.is_public, e)}
-                disabled={toggling === universe.id}
-                size="sm"
-                variant="outline"
-                className="bg-white"
-                title={universe.is_public ? 'Make Private' : 'Make Public'}
-              >
-                {toggling === universe.id ? (
-                  '...'
-                ) : universe.is_public ? (
-                  <Eye className="h-4 w-4" />
-                ) : (
-                  <EyeOff className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                onClick={(e) => handleDeleteUniverse(universe.id, e)}
-                disabled={deleting === universe.id}
-                size="sm"
-                variant="destructive"
-                title="Delete Universe"
-              >
-                {deleting === universe.id ? (
-                  '...'
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white p-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-purple-100">My Universes</h1>
+            <p className="text-purple-200">Manage your created universes</p>
           </div>
-        ))}
-      </div>
-
-      {universes.length === 0 && !showForm && (
-        <div className="text-center py-8 text-gray-500">
-          <p>You haven't created any universes yet.</p>
-          <Button onClick={() => setShowForm(true)} className="mt-4">
-            Create Your First Universe
+          <Button onClick={() => setShowForm(!showForm)} className="bg-purple-600 hover:bg-purple-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Universe
           </Button>
         </div>
-      )}
+
+        {showForm && (
+          <div className="bg-purple-800/50 p-6 rounded-lg border border-purple-600">
+            <CreateUniverseForm onSuccess={handleFormSuccess} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {universes.map((universe) => (
+            <div key={universe.id} className="relative">
+              <UniverseCard key={universe.id} universe={universe} onSelect={handleMyUniverseSelect} />
+              <div className="absolute top-2 right-2 flex gap-1">
+                <Button
+                  onClick={(e) => handleTogglePrivacy(universe.id, universe.is_public, e)}
+                  disabled={toggling === universe.id}
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/90 border-purple-400 text-purple-800 hover:bg-white"
+                  title={universe.is_public ? 'Make Private' : 'Make Public'}
+                >
+                  {toggling === universe.id ? (
+                    '...'
+                  ) : universe.is_public ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  onClick={(e) => handleDeleteUniverse(universe.id, e)}
+                  disabled={deleting === universe.id}
+                  size="sm"
+                  variant="destructive"
+                  title="Delete Universe"
+                >
+                  {deleting === universe.id ? (
+                    '...'
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {universes.length === 0 && !showForm && (
+          <div className="text-center py-8 text-purple-200">
+            <p>You haven't created any universes yet.</p>
+            <Button onClick={() => setShowForm(true)} className="mt-4 bg-purple-600 hover:bg-purple-700">
+              Create Your First Universe
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

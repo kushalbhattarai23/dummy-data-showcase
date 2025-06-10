@@ -37,6 +37,7 @@ import { Sitemap } from './pages/Sitemap';
 import { InventoryDashboard } from './pages/InventoryDashboard';
 import { CreateOrganization } from './pages/CreateOrganization';
 import { OrganizationDetail } from './pages/OrganizationDetail';
+import { LandingDashboard } from './pages/LandingDashboard';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -50,7 +51,7 @@ function App() {
             <Navigation />
             <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 flex-1 w-full">
               <Routes>
-                <Route path="/" element={<TrackHub />} />
+                <Route path="/" element={<LandingDashboard />} />
                 <Route path="/track-hub" element={<TrackHub />} />
                 
                 {/* TV Show Tracker Routes */}

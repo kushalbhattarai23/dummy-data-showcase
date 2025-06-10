@@ -109,6 +109,8 @@
   --primary: var(--universe-primary);
   --secondary: var(--universe-secondary);
   --accent: var(--universe-accent);
+  background: linear-gradient(135deg, #6b46c1 0%, #7c3aed 50%, #4c1d95 100%);
+  min-height: 100vh;
 }
 
 .bg-universe-primary {
@@ -125,4 +127,16 @@
 
 .border-universe-primary {
   border-color: hsl(var(--universe-primary));
+}
+
+/* Netflix-style gradient background for landing page */
+.netflix-style-bg {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+}
+
+/* Purple theme for My Shows */
+.my-shows-theme {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a855f7 100%);
+  min-height: 100vh;
 }

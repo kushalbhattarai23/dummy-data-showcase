@@ -4,8 +4,11 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tv, Play, CheckCircle, Clock, TrendingUp, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   totalShows: number;
@@ -20,15 +23,21 @@ interface DashboardStats {
 interface ShowProgress {
   id: string;
   title: string;
+  slug: string;
   totalEpisodes: number;
   watchedEpisodes: number;
   status: 'watching' | 'not_started' | 'completed';
 }
 
+type FilterType = 'all' | 'watching' | 'not_started' | 'completed';
+
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [showProgress, setShowProgress] = useState<ShowProgress[]>([]);
+  const [filteredShows, setFilteredShows] = useState<ShowProgress[]>([]);
+  const [currentFilter, setCurrentFilter] = useState<FilterType>('all');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -38,16 +47,37 @@ export const Dashboard: React.FC = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    filterShows(currentFilter);
+  }, [showProgress, currentFilter]);
+
+  const filterShows = (filter: FilterType) => {
+    if (filter === 'all') {
+      setFilteredShows(showProgress);
+    } else {
+      setFilteredShows(showProgress.filter(show => show.status === filter));
+    }
+  };
+
+  const handleFilterClick = (filter: FilterType) => {
+    setCurrentFilter(filter);
+  };
+
+  const handleShowClick = (showSlug: string) => {
+    navigate(`/tracker/show/${showSlug}`);
+  };
+
   const fetchDashboardData = async () => {
     try {
-      // Get tracked shows
+      // Get tracked shows with their slugs
       const { data: trackedShows, error: trackedError } = await supabase
         .from('user_show_tracking')
         .select(`
           show_id,
           shows (
             id,
-            title
+            title,
+            slug
           )
         `)
         .eq('user_id', user.id);
@@ -78,7 +108,7 @@ export const Dashboard: React.FC = () => {
           id,
           show_id,
           title,
-          shows!inner(id, title)
+          shows!inner(id, title, slug)
         `)
         .in('show_id', trackedShowIds);
 
@@ -95,7 +125,7 @@ export const Dashboard: React.FC = () => {
 
       const watchedEpisodeIds = new Set((watchedData || []).map(item => item.episode_id));
 
-      // Get universes count (you can track universes you're interested in)
+      // Get universes count
       const { data: universesData, error: universesError } = await supabase
         .from('universes')
         .select('id')
@@ -115,6 +145,7 @@ export const Dashboard: React.FC = () => {
           showsMap.set(showId, {
             id: showId,
             title: episode.shows.title,
+            slug: episode.shows.slug,
             totalEpisodes: 0,
             watchedEpisodes: 0
           });
@@ -249,21 +280,48 @@ export const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Show Status Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-purple-200">
+        {/* Show Status Summary - Now clickable */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card 
+            className={`border-purple-200 cursor-pointer transition-all hover:shadow-lg ${
+              currentFilter === 'all' ? 'ring-2 ring-purple-600' : ''
+            }`}
+            onClick={() => handleFilterClick('all')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-purple-900">
-                <Play className="h-5 w-5 text-purple-600" />
+                <Tv className="h-5 w-5 text-purple-600" />
+                <span>All Shows</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600">{stats?.totalShows || 0}</div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`border-purple-200 cursor-pointer transition-all hover:shadow-lg ${
+              currentFilter === 'watching' ? 'ring-2 ring-blue-600' : ''
+            }`}
+            onClick={() => handleFilterClick('watching')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-purple-900">
+                <Play className="h-5 w-5 text-blue-600" />
                 <span>Watching</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{stats?.watchingShows || 0}</div>
+              <div className="text-3xl font-bold text-blue-600">{stats?.watchingShows || 0}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200">
+          <Card 
+            className={`border-purple-200 cursor-pointer transition-all hover:shadow-lg ${
+              currentFilter === 'not_started' ? 'ring-2 ring-yellow-600' : ''
+            }`}
+            onClick={() => handleFilterClick('not_started')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-purple-900">
                 <Clock className="h-5 w-5 text-yellow-600" />
@@ -275,7 +333,12 @@ export const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200">
+          <Card 
+            className={`border-purple-200 cursor-pointer transition-all hover:shadow-lg ${
+              currentFilter === 'completed' ? 'ring-2 ring-green-600' : ''
+            }`}
+            onClick={() => handleFilterClick('completed')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-purple-900">
                 <CheckCircle className="h-5 w-5 text-green-600" />
@@ -288,52 +351,81 @@ export const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Show Progress List */}
+        {/* Show Progress Table */}
         <Card className="border-purple-200">
           <CardHeader>
-            <CardTitle className="text-purple-900">Show Progress</CardTitle>
-            <CardDescription className="text-purple-600">Track your progress across all shows</CardDescription>
+            <CardTitle className="text-purple-900">
+              Show Progress {currentFilter !== 'all' && `- ${currentFilter.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+            </CardTitle>
+            <CardDescription className="text-purple-600">
+              Click on show names to view details. Filter by status using the cards above.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {showProgress.map((show) => (
-                <div key={show.id} className="flex items-center justify-between p-4 border border-purple-100 rounded-lg bg-purple-50/50">
-                  <div className="flex-1">
-                    <h3 className="font-medium text-purple-900">{show.title}</h3>
-                    <p className="text-sm text-purple-600">
-                      {show.watchedEpisodes} / {show.totalEpisodes} episodes
-                    </p>
-                    <Progress 
-                      value={show.totalEpisodes > 0 ? (show.watchedEpisodes / show.totalEpisodes) * 100 : 0} 
-                      className="w-full mt-2 [&>div]:bg-purple-600" 
-                    />
-                  </div>
-                  <div className="ml-4">
-                    <Badge 
-                      variant={
-                        show.status === 'completed' ? 'default' :
-                        show.status === 'watching' ? 'secondary' :
-                        'outline'
-                      }
-                      className={
-                        show.status === 'completed' ? 'bg-purple-600 text-white' :
-                        show.status === 'watching' ? 'bg-purple-200 text-purple-800' :
-                        'border-purple-300 text-purple-700'
-                      }
-                    >
-                      {show.status === 'completed' ? 'Completed' :
-                       show.status === 'watching' ? 'Watching' :
-                       'Not Started'}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-              {showProgress.length === 0 && (
-                <p className="text-center text-purple-500 py-8">
-                  No tracked shows found. Start tracking some shows to see your progress!
-                </p>
-              )}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-purple-700">Show Name</TableHead>
+                  <TableHead className="text-purple-700">Progress</TableHead>
+                  <TableHead className="text-purple-700">Episodes</TableHead>
+                  <TableHead className="text-purple-700">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredShows.map((show) => (
+                  <TableRow key={show.id} className="hover:bg-purple-50">
+                    <TableCell>
+                      <button
+                        onClick={() => handleShowClick(show.slug)}
+                        className="font-medium text-purple-900 hover:text-purple-600 text-left underline-offset-4 hover:underline"
+                      >
+                        {show.title}
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-full">
+                        <Progress 
+                          value={show.totalEpisodes > 0 ? (show.watchedEpisodes / show.totalEpisodes) * 100 : 0} 
+                          className="w-full [&>div]:bg-purple-600" 
+                        />
+                        <p className="text-xs text-purple-600 mt-1">
+                          {show.totalEpisodes > 0 ? Math.round((show.watchedEpisodes / show.totalEpisodes) * 100) : 0}%
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-purple-600">
+                      {show.watchedEpisodes} / {show.totalEpisodes}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          show.status === 'completed' ? 'default' :
+                          show.status === 'watching' ? 'secondary' :
+                          'outline'
+                        }
+                        className={
+                          show.status === 'completed' ? 'bg-green-600 text-white' :
+                          show.status === 'watching' ? 'bg-blue-200 text-blue-800' :
+                          'border-yellow-300 text-yellow-700'
+                        }
+                      >
+                        {show.status === 'completed' ? 'Completed' :
+                         show.status === 'watching' ? 'Watching' :
+                         'Not Started'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {filteredShows.length === 0 && (
+              <div className="text-center text-purple-500 py-8">
+                {currentFilter === 'all' 
+                  ? "No tracked shows found. Start tracking some shows to see your progress!"
+                  : `No ${currentFilter.replace('_', ' ')} shows found.`
+                }
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

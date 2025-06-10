@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UniverseCard } from '@/components/universes/UniverseCard';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Search, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface Universe {
   id: string;
@@ -14,15 +14,16 @@ interface Universe {
   description: string | null;
   slug: string;
   created_at: string;
-  creator_id: string;
+  is_public: boolean;
+  creator_id: string | null;
 }
 
 export const PublicUniverses: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [universes, setUniverses] = useState<Universe[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchPublicUniverses();
@@ -39,77 +40,63 @@ export const PublicUniverses: React.FC = () => {
       if (error) throw error;
       setUniverses(data || []);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load public universes',
-        variant: 'destructive',
-      });
+      console.error('Error fetching public universes:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePublicUniverseSelect = (universeId: string) => {
+  const handleUniverseSelect = (universeId: string) => {
     const universe = universes.find(u => u.id === universeId);
     if (universe?.slug) {
       navigate(`/universe/${universe.slug}`);
     }
   };
 
+  const filteredUniverses = universes.filter(universe =>
+    universe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (universe.description && universe.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   if (loading) {
-    return <div className="text-center py-8">Loading universes...</div>;
+    return <div className="text-center py-8">Loading public universes...</div>;
   }
 
-  const myUniverses = user ? universes.filter((u) => u.creator_id === user.id) : [];
-  const otherUniverses = user ? universes.filter((u) => u.creator_id !== user.id) : universes;
-
   return (
-    <div className="space-y-10 universe-theme">
-      {!user && (
-        <div className="text-center py-8 bg-purple-50 rounded-lg border border-purple-200">
-          <h2 className="text-2xl font-bold text-purple-800 mb-4">Welcome to TV Show Universes</h2>
-          <p className="text-purple-600 mb-6">Discover amazing TV show universes created by our community</p>
-          <div className="space-x-4">
-            <Link to="/sign-in">
-              <Button className="bg-purple-600 hover:bg-purple-700">Sign In</Button>
-            </Link>
-            <Link to="/sign-up">
-              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50">Sign Up</Button>
-            </Link>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white p-6">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-purple-100">Public Universes</h1>
+            <p className="text-purple-200">Explore universes created by the community</p>
           </div>
+          {user && (
+            <Button onClick={() => navigate('/tracker/universes/my')} className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="h-4 w-4 mr-2" />
+              My Universes
+            </Button>
+          )}
         </div>
-      )}
 
-      {user && myUniverses.length > 0 && (
-        <div>
-          <h1 className="text-3xl font-bold text-universe-primary">My Public Universes</h1>
-          <p className="text-gray-600">Your public TV show universes</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-            {myUniverses.map((universe) => (
-              <UniverseCard key={universe.id} universe={universe} onSelect={handlePublicUniverseSelect} />
-            ))}
-          </div>
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-300 h-4 w-4" />
+          <Input
+            placeholder="Search universes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-purple-800/50 border-purple-600 text-white placeholder-purple-300"
+          />
         </div>
-      )}
 
-      <div>
-        <h2 className={`text-2xl font-bold text-universe-primary ${user ? '' : 'text-center'}`}>
-          {user ? 'Other Public Universes' : 'Public Universes'}
-        </h2>
-        <p className={`text-gray-600 ${user ? '' : 'text-center'}`}>
-          {user ? 'Explore universes created by other users' : 'Explore amazing TV show universes'}
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredUniverses.map((universe) => (
+            <UniverseCard key={universe.id} universe={universe} onSelect={handleUniverseSelect} />
+          ))}
+        </div>
 
-        {otherUniverses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-            {otherUniverses.map((universe) => (
-              <UniverseCard key={universe.id} universe={universe} onSelect={handlePublicUniverseSelect} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No public universes found.
+        {filteredUniverses.length === 0 && !loading && (
+          <div className="text-center py-8 text-purple-200">
+            {searchTerm ? 'No universes found matching your search.' : 'No public universes available yet.'}
           </div>
         )}
       </div>

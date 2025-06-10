@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,7 @@ import { ExpenseChart } from '@/components/finance/ExpenseChart';
 import { IncomeChart } from '@/components/finance/IncomeChart';
 import { RecentTransactions } from '@/components/finance/RecentTransactions';
 import { formatCurrency } from '@/lib/currency';
+import { CSVImportExport } from '@/components/finance/CSVImportExport';
 
 // Updated interface to match database schema
 interface DatabaseTransaction {
@@ -197,6 +197,11 @@ export const FinanceDashboard: React.FC = () => {
               <p className="text-xs text-green-600 mt-1">Income - Expenses</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* CSV Import/Export Section */}
+        <div className="mb-6 sm:mb-8">
+          <CSVImportExport />
         </div>
 
         {/* Charts Section */}

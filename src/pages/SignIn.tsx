@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,9 +14,19 @@ export const SignIn: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // If user is already authenticated, redirect them
+  useEffect(() => {
+    if (user) {
+      const from = location.state?.from?.pathname || '/';
+      console.log('User already authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +38,13 @@ export const SignIn: React.FC = () => {
         title: "Welcome back!",
         description: "You've been signed in successfully.",
       });
-      navigate('/');
+      
+      // Get the intended destination from location state or default to home
+      const from = location.state?.from?.pathname || '/';
+      console.log('Sign in successful, redirecting to:', from);
+      navigate(from, { replace: true });
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -47,6 +62,7 @@ export const SignIn: React.FC = () => {
       await signInWithGoogle();
       // Note: The redirect will handle the navigation
     } catch (error: any) {
+      console.error('Google sign in error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -55,6 +71,18 @@ export const SignIn: React.FC = () => {
       setGoogleLoading(false);
     }
   };
+
+  // Show loading if user is already authenticated
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 flex items-center justify-center px-4">

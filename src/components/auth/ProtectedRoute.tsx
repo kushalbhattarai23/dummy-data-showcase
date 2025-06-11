@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from './AuthProvider';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,6 +13,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/sign-in' 
 }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  console.log('ProtectedRoute: user =', user ? 'authenticated' : 'not authenticated', 'loading =', loading);
 
   if (loading) {
     return (
@@ -26,8 +29,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
-    return <Navigate to={redirectTo} replace />;
+    console.log('ProtectedRoute: No user found, redirecting to sign-in with location state:', location.pathname);
+    // Store the attempted location so we can redirect back after login
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
+  console.log('ProtectedRoute: User authenticated, rendering children');
   return <>{children}</>;
 };
